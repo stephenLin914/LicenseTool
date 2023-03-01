@@ -43,53 +43,13 @@ struct rk_vendor_req {
 };
 
 jstring vendorStorageReadLicense(JNIEnv* env) {
-    int ret;
-    uint16 len;
-    struct rk_vendor_req req;
-    int sys_fd = open(DIR, O_RDONLY, 0);
-    if (sys_fd < 0) {
-        LOGE(TAG, "vendor_storage open fail %s\n", strerror(errno));
-        return NULL;
-    }
-
-    req.tag = VENDOR_REQ_TAG;
-    req.id = VENDOR_CAST_LICENSE_ID;
-    req.len = VENDOR_CAST_LICENSE_DATA_LEN;
-    memset(req.data, 0, VENDOR_CAST_LICENSE_DATA_LEN);
-    ret = ioctl(sys_fd, VENDOR_READ_IO, &req);
-    close(sys_fd);
-    if (ret) {
-        LOGE(TAG, "vendor read error! ret = %d\n", ret);
-        return NULL;
-    }
-    len = req.len;
-    if (len <= 0) {
-        LOGE(TAG, "illegal length! len = %d\n", len);
-        return NULL;
-    }
-    return env->NewStringUTF((char *)req.data);
+    LOGD(TAG, "vendorStorageReadLicense");
+    return env->NewStringUTF("hello");
 }
 
 jint vendorStorageWriteLicense(JNIEnv* env, jobject thiz, jstring licenseStr) {
-    ScopedUtfChars license(env, licenseStr);
-    int ret ;
-    struct rk_vendor_req req;
-    int sys_fd = open(DIR, O_RDONLY, 0);
-    if(sys_fd < 0){
-        LOGE(TAG, "vendor_storage open fail %s\n", strerror(errno));
-        return -1;
-    }
-    memset(&req, 0, sizeof(req));
-    req.tag = VENDOR_REQ_TAG;
-    req.id = VENDOR_CAST_LICENSE_ID;
-    req.len = license.size();
-    memcpy(req.data, license.c_str(), license.size());
-    ret = ioctl(sys_fd, VENDOR_WRITE_IO, &req);
-    close(sys_fd);
-    if(ret){
-        LOGE(TAG, "error in saving license to IDB.\n");
-        return -1;
-    }
+    const char* s = env->GetStringUTFChars(licenseStr, 0);
+    LOGD(TAG, "vendorStorageWriteLicense: %s", s);
     return 0;
 }
 
@@ -120,7 +80,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved){
         return result;
     }
 
-    int res = RegisterNativeMethods(env, "com/seeya/cast/util/LicenseTool",
+    int res = RegisterNativeMethods(env, "com/example/licenseapply/LicenseTool",
               gJni_Methods_table, sizeof(gJni_Methods_table) /
                                   sizeof(gJni_Methods_table[0]));
 
